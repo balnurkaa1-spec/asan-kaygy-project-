@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Асан қайғының Жерұйықты іздеу саяхаты</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { margin: 0; padding: 0; background-color: #f4f7f6; color: #333; }
+        header { background: #2c3e50; color: white; text-align: center; padding: 2rem 1rem; }
+        header h1 { margin: 0; font-size: 2.2rem; }
+        header p { font-size: 1.1rem; color: #bdc3c7; margin-top: 0.5rem; }
+        .container { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+        @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+        .card { background: white; border-radius: 10px; padding: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .place-btn { 
+            display: block; width: 100%; text-align: left; background: #eef2f3; 
+            border: 1px solid #dcdde1; padding: 0.8rem 1rem; margin-bottom: 0.5rem; 
+            border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s; 
+        }
+        .place-btn:hover, .place-btn.active { background: #3498db; color: white; border-color: #2980b9; }
+        .badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.85rem; margin-right: 0.5rem; }
+        .bg-hydro { background: #3498db; color: white; }
+        .bg-oro { background: #e67e22; color: white; }
+        .bg-oiko { background: #2ecc71; color: white; }
+        .info-box { background: #fafafa; border-left: 4px solid #3498db; padding: 1rem; margin-top: 1rem; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>«Асан қайғының Жерұйық ізденісі»</h1>
+    <p>Жер-су атауларының топонимикалық интерактивті карта-картасы</p>
+</header>
+
+<div class="container">
+    <div class="grid">
+        <!-- Соңғы тізім (Сол жақ) -->
+        <div class="card">
+            <h2>📍 Саяхат бағыттарын таңдаңыз:</h2>
+            <p style="color: #7f8c8d; font-size: 0.9rem;">Нысанды басып, Асан қайғының бағасын көріңіз:</p>
+            
+            <button class="place-btn active" onclick="showInfo('ertis', this)">
+                <span class="badge bg-hydro">Гидроним</span> Ертіс өзені
+            </button>
+            <button class="place-btn" onclick="showInfo('syrobl', this)">
+                <span class="badge bg-hydro">Гидроним</span> Сырдария (Сыр бойы)
+            </button>
+            <button class="place-btn" onclick="showInfo('bayan', this)">
+                <span class="badge bg-oro">Ороним</span> Баянауыл тауы
+            </button>
+            <button class="place-btn" onclick="showInfo('karsak', this)">
+                <span class="badge bg-oiko">Ойконим</span> Қарсақбай аймағы
+            </button>
+            <button class="place-btn" onclick="showInfo('akmesh', this)">
+                <span class="badge bg-oiko">Ойконим</span> Ақмешіт (Қызылорда)
+            </button>
+            <button class="place-btn" onclick="showInfo('torgay', this)">
+                <span class="badge bg-hydro">Гидроним</span> Торғай өзені
+            </button>
+        </div>
+
+        <!-- Ақпарат шығатын терезе (Оң жақ) -->
+        <div class="card" id="detail-card">
+            <h2 id="title">Ертіс өзені</h2>
+            <div id="content">
+                <div class="info-box">
+                    <strong>💬 Асан қайғының бағасы:</strong>
+                    <p id="quote">«Мына шіркіннің баласы тойдым деп қарап отырмас, қарным ашты деп жылап отырмас... Күнінде баласы кеуірден жылайды-ау!»</p>
+                </div>
+                <p><strong>📌 Топонимикалық түрі:</strong> Гидроним (потамоним)</p>
+                <p><strong>📝 Тілдік жасалуы:</strong> Лексика-семантикалық тәсіл (көне түбір)</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const data = {
+        ertis: {
+            title: "Ертіс өзені",
+            quote: "«Мына шіркіннің баласы тойдым деп қарап отырмас, қарным ашты деп жылап отырмас, сиырдың мүйізі, кеуірдің құлағы шығып тұрған жер екен. Күнінде баласы кеуірден жылайды-ау!»",
+            type: "Гидроним (Потамоним - ағын су атауы)",
+            method: "Лексика-семантикалық тәсіл"
+        },
+        syrobl: {
+            title: "Сырдария (Сыр бойы)",
+            quote: "«Басы байпақ, аяғы қайқақ, екі-ақ ауылға қоныс екен, өн бойы кедейлікке біткен жер екен. Қаратауды жайласа, Сырдың бойын қыстаса, қоныс болуға сонда дұрыс екен!»",
+            type: "Гидроним, Потамоним",
+            method: "Синтаксистік, аналитикалық тәсіл (Сыр + Дария)"
+        },
+        bayan: {
+            title: "Баянауыл тауы",
+            quote: "«Ат ерін алуға жарамайтұғын жер екен, шіркінді жұрт қалай қоныс қылып отырған? Бауырында бір қара тиген тұзы бар екен, тұзы ауыр екен...»",
+            type: "Ороним (Таулы аймақ / Антропоороним)",
+            method: "Синтаксистік, аналитикалық тәсіл"
+        },
+        karsak: {
+            title: "Қарсақбай аймағы",
+            quote: "«Айналаң жапан түз екен, тауыңның асты жез екен, екі тауың ел біткенді шақырар, басыңа байлық қонар, жұртың ашықпас!»",
+            type: "Ойконим (Антропотопоним)",
+            method: "Синтаксистік, аналитикалық тәсіл"
+        },
+        akmesh: {
+            title: "Ақмешіт (Қызылорда)",
+            quote: "«Ей, Ақмешіт, жерің шаң екен, суың жар екен, әр бұтаның түбінде кесек етің бар екен! Елің жұтамас, малыңның көзіне сақ бол!»",
+            type: "Ойконим (Астионим / Хроматотопоним)",
+            method: "Синтаксистік, аналитикалық тәсіл (Ақ + Мешіт)"
+        },
+        torgay: {
+            title: "Торғай өзені",
+            quote: "«Ағар суы бал татыған, ақ шабағы май татыған жер екен!»",
+            type: "Гидроним (Өзен аты)",
+            method: "Лексика-семантикалық тәсіл"
+        }
+    };
+
+    function showInfo(key, element) {
+        document.querySelectorAll('.place-btn').forEach(btn => btn.classList.remove('active'));
+        element.classList.add('active');
+        
+        const item = data[key];
+        document.getElementById('title').innerText = item.title;
+        document.getElementById('quote').innerText = item.quote;
+        document.getElementById('content').innerHTML = `
+            <div class="info-box">
+                <strong>💬 Асан қайғының бағасы:</strong>
+                <p>${item.quote}</p>
+            </div>
+            <p><strong>📌 Топонимикалық түрі:</strong> ${item.type}</p>
+            <p><strong>📝 Тілдік жасалуы:</strong> ${item.method}</p>
+        `;
+    }
+</script>
+
+</body>
+</html>
