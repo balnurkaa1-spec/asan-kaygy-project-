@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASAN-KAYGY.KZ — Жерұйық топонимикасы мен этно-порталы</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #17120e; color: #f5f5f4; }
+        .font-title { font-family: 'Playfair Display', serif; }
+        .nav-tab.active { background-color: #d97706; color: #ffffff; border-color: #f59e0b; font-weight: 700; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.4); }
+        
+        /* Retro Map Filter */
+        .retro-map { filter: sepia(0.35) contrast(1.1) brightness(0.95); }
+
+        .modal-cert-bg {
+            background: #fffdf5;
+            border: 8px solid #6b3410;
+            outline: 2px solid #d97706;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+        }
+        .gold-seal {
+            width: 70px;
+            height: 70px;
+            background: radial-gradient(circle, #b45309 0%, #78350f 100%);
+            border-radius: 50%;
+            border: 3px double #fef3c7;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fef3c7;
+            font-weight: 800;
+            font-size: 11px;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- HEADER -->
+    <header class="bg-[#241a14] text-amber-50 sticky top-0 z-40 shadow-2xl border-b border-amber-900/40">
+        <div class="max-w-7xl mx-auto px-4 py-4">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-3 mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-amber-600 flex items-center justify-center text-white text-xl font-bold shadow-lg">🧭</div>
+                    <div>
+                        <h1 class="font-title text-2xl sm:text-3xl font-bold text-amber-400">ASAN-KAYGY.KZ</h1>
+                        <p class="text-xs text-amber-200/60">Асан қайғы мұрасы мен Жерұйық топонимикасының ғылыми-ағартушылық порталы</p>
+                    </div>
+                </div>
+                <div class="bg-amber-950/60 border border-amber-800/60 text-amber-300 text-xs px-3 py-1.5 rounded-full flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>15-ғасыр тарихи карталары & Ғылыми дерекқор</span>
+                </div>
+            </div>
+
+            <!-- MENU TABS (8 TABS NOW) -->
+            <nav class="flex flex-wrap gap-1.5 justify-center sm:justify-start text-xs sm:text-sm font-medium">
+                <button onclick="switchTab(1)" id="tab-btn-1" class="nav-tab active px-3 py-2 rounded-xl border border-amber-900/40 bg-[#2d2018] hover:bg-amber-900/50 transition">1. 🗺 Нысандар</button>
+                <button onclick="switchTab(2)" id="tab-btn-2" class="nav-tab px-3 py-2 rounded-xl border border-amber-900/40 bg-[#2d2018] hover:bg-amber-900/50 transition">2. 🔍 Каталог</button>
+                <button onclick="switchTab(3)" id="tab-btn-3" class="nav-tab px-3 py-2 rounded-xl border border-emerald-900/60 bg-emerald-950/60 text-emerald-200 hover:bg-emerald-900 transition">3. 🌿 Этимология</button>
+                <button onclick="switchTab(4)" id="tab-btn-4" class="nav-tab px-3 py-2 rounded-xl border border-amber-900/40 bg-[#2d2018] hover:bg-amber-900/50 transition">4. 📜 15-Ғасыр Картасы</button>
+                <button onclick="switchTab(5)" id="tab-btn-5" class="nav-tab px-3 py-2 rounded-xl border border-amber-800/60 bg-amber-950/80 text-amber-200 hover:bg-amber-900 transition">5. ☀️ Ономастика</button>
+                <button onclick="switchTab(6)" id="tab-btn-6" class="nav-tab px-3 py-2 rounded-xl border border-amber-900/40 bg-[#2d2018] hover:bg-amber-900/50 transition">6. 📜 Аңыз-Толғау</button>
+                <button onclick="switchTab(7)" id="tab-btn-7" class="nav-tab px-3 py-2 rounded-xl border border-amber-500 bg-amber-600 text-white font-bold hover:bg-amber-500 transition shadow-lg">7. 🎮 Тест & Сертификат</button>
+                <button onclick="switchTab(8)" id="tab-btn-8" class="nav-tab px-3 py-2 rounded-xl border border-amber-700 bg-amber-900/80 text-amber-100 hover:bg-amber-800 transition font-bold">8. 🌟 Қорытынды</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-8">
+
+        <!-- TAB 1 -->
+        <section id="tab-1" class="tab-page space-y-6">
+            <div class="bg-[#241a14] p-6 rounded-3xl border border-amber-900/30 shadow-xl">
+                <h2 class="font-title text-2xl font-bold text-amber-400 mb-2">🗺 Топонимикалық Нысандар Интерактивті Картасы</h2>
+                <p class="text-sm text-stone-400 mb-4">Картадағы кез келген маркерді басыңыз. Төменде оның Асан қайғы толғауы мен заманауи сараптамасы шығады.</p>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div id="map1" class="lg:col-span-2 h-[520px] rounded-2xl shadow-inner border border-amber-900/40 z-10"></div>
+                    
+                    <div id="main-display-card" class="bg-[#2d2018] p-6 rounded-2xl border border-amber-700/50 flex flex-col justify-between shadow-xl">
+                        <div>
+                            <div class="flex justify-between items-center">
+                                <span id="card-type" class="px-3 py-1 rounded-full text-xs font-bold text-amber-100 bg-amber-800">Өзен (Гидроним)</span>
+                                <span class="text-xs text-amber-400 font-semibold">ASAN-KAYGY.KZ</span>
+                            </div>
+                            <h3 id="card-title" class="font-title text-3xl font-bold text-amber-200 mt-3">Ұзын Ертіс өзені</h3>
+                            
+                            <div class="my-4 p-4 bg-[#1e1510] rounded-xl border border-amber-900/60">
+                                <span class="text-xs font-bold text-amber-500 uppercase tracking-wider block mb-1">💬 Асан Қайғының толғау сөзі:</span>
+                                <p id="card-quote" class="italic text-amber-100/90 text-sm leading-relaxed">«Мына шіркіннің баласы тойдым деп қарап отырмас, қарным ашты деп жылап отырмас... Күнінде баласы кеуірден жылайды-ау!»</p>
+                            </div>
+
+                            <p id="card-desc" class="text-sm text-stone-300 leading-relaxed">Асан қайғы бабамыз Ертіс бойының балық байлығын жоғары бағалай отырып, бұл өлкеде геосаяси қауіпсіздікті сақтаудың аса маңыздылығын ескерткен. Қазіргі уақытта Ертіс бассейні — Шығыс пен Солтүстік Қазақстанның басты өнеркәсіптік әрі су-энергетикалық күретамыры болып табылады.</p>
+                        </div>
+                        
+                        <button onclick="openDetailedModalCurrent()" class="mt-6 w-full py-3 bg-amber-700 hover:bg-amber-600 text-stone-950 font-bold text-xs sm:text-sm rounded-xl transition shadow">
+                            📖 Толығырақ (Этимологиясы мен Жіктелуін Ашу) ➔
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: CATALOG -->
+        <section id="tab-2" class="tab-page hidden space-y-6">
+            <div class="bg-[#241a14] p-6 sm:p-8 rounded-3xl border border-amber-900/30">
+                <h2 class="font-title text-3xl font-bold text-amber-400 mb-4">🔍 Топонимикалық Электронды Каталог</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="catalog-container"></div>
+            </div>
+        </section>
+
+        <!-- TAB 3: ETYMOLOGY -->
+        <section id="tab-3" class="tab-page hidden space-y-6">
+            <div class="bg-[#14231a] p-6 sm:p-8 rounded-3xl border border-emerald-900/60 shadow-2xl">
+                <h2 class="font-title text-3xl font-bold text-emerald-300 mb-2">🌿 Топонимдердің Тілдік Этимологиясы</h2>
+                <p class="text-sm text-emerald-400/80 mb-6">Нысан атауларының шығу тегі, көне түркілік түбірлері мен сөзжасамдық сипаты.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="etymology-container"></div>
+            </div>
+        </section>
+
+        <!-- TAB 4: RETRO MAP 15TH CENTURY -->
+        <section id="tab-4" class="tab-page hidden space-y-6">
+            <div class="bg-[#241a14] p-6 rounded-3xl border border-amber-900/30 space-y-4">
+                <h2 class="font-title text-2xl font-bold text-amber-400">📜 15-Ғасырдағы Қазақ Хандығының Тарихи Картасы & Маршрут</h2>
+                <p class="text-sm text-stone-400">XV ғасырдағы Қазақ хандығы, Ақ Орда, Моғолстан, Ноғай Ордасы мен Әмір Темір мемлекеті бейнеленген көне ретро карта мен Асан қайғы бағыты.</p>
+                <div id="map2" class="h-[520px] rounded-2xl shadow-inner border border-amber-900/60 retro-map"></div>
+            </div>
+        </section>
+
+        <!-- TAB 5: ONOMASTIC -->
+        <section id="tab-5" class="tab-page hidden space-y-6">
+            <div class="bg-[#241a14] p-6 sm:p-8 rounded-3xl border border-amber-900/40 shadow-2xl">
+                <h2 class="font-title text-3xl font-bold text-amber-400 mb-2">☀️ Ономастикалық және Семантикалық Жіктелу</h2>
+                <p class="text-sm text-stone-400 mb-6">Оронимдер, гидронимдер мен ойконимдердің ғылыми-этнографиялық жіктелуі.</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="onomastic-container"></div>
+            </div>
+        </section>
+
+        <!-- TAB 6: FOLKLORE -->
+        <section id="tab-6" class="tab-page hidden space-y-6">
+            <div class="bg-[#241a14] p-6 sm:p-8 rounded-3xl border border-amber-900/30 space-y-6">
+                <h2 class="font-title text-3xl font-bold text-amber-400">📜 Асан Қайғының Аңыз-Толғаулары мен Сындары</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="folklore-container"></div>
+            </div>
+        </section>
+
+        <!-- TAB 7: QUIZ & CERTIFICATE -->
+        <section id="tab-7" class="tab-page hidden space-y-6">
+            <div class="bg-[#1e1713] p-6 sm:p-10 rounded-3xl border border-amber-900/40 shadow-2xl space-y-6">
+                <div class="text-center max-w-2xl mx-auto space-y-2">
+                    <span class="bg-amber-600/20 text-amber-400 text-xs font-bold px-3 py-1 rounded-full uppercase border border-amber-500/30">ИНТЕРАКТИВТІ БІЛІМ ТЕКСЕРУ</span>
+                    <h2 class="font-title text-3xl font-bold text-amber-300">10 Сұрақ Тест & Академиялық Сертификат</h2>
+                    <p class="text-xs sm:text-sm text-stone-400">Асан қайғы мұрасы мен топонимикасы бойынша біліміңізді тексеріп, ресми сертификат алыңыз!</p>
+                </div>
+
+                <div id="quiz-full-list" class="max-w-3xl mx-auto space-y-6"></div>
+
+                <div id="quiz-finish-card" class="hidden max-w-2xl mx-auto bg-[#261d17] border-2 border-amber-600/60 p-8 rounded-2xl text-center space-y-6 shadow-2xl">
+                    <div class="w-16 h-16 rounded-full bg-amber-600/30 border-2 border-amber-500 flex items-center justify-center mx-auto text-2xl">🏆</div>
+                    
+                    <h3 class="font-title text-3xl font-bold text-amber-200">Тест Аяқталды!</h3>
+                    <p id="quiz-final-score-text" class="text-xl font-bold text-amber-400">Сіздің нәтижеңіз: <span id="user-score-val">9</span> / 10</p>
+                    <hr class="border-amber-900/60">
+
+                    <div class="space-y-3">
+                        <label class="block text-xs text-amber-200/80 font-medium">Сертификат алу үшін аты-жөніңізді енгізіңіз:</label>
+                        <input type="text" id="student-name-input" placeholder="Мысалы: Ахметов Ерлан Нұрланұлы" class="w-full max-w-md px-4 py-3 bg-[#17110d] border border-amber-800/80 rounded-xl text-amber-100 placeholder-stone-600 text-center focus:outline-none focus:border-amber-500 font-medium">
+                    </div>
+
+                    <button onclick="generateCertificateModal()" class="px-8 py-3.5 bg-amber-700 hover:bg-amber-600 text-stone-950 font-bold rounded-xl transition shadow-xl text-sm flex items-center justify-center gap-2 mx-auto">
+                        📜 Сертификатты Қалыптастыру
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 8: CONCLUSION (NEW SECTION) -->
+        <section id="tab-8" class="tab-page hidden space-y-6">
+            <div class="bg-[#241a14] p-8 sm:p-12 rounded-3xl border border-amber-900/40 shadow-2xl max-w-4xl mx-auto space-y-6">
+                <div class="text-center space-y-2 border-b border-amber-900/40 pb-6">
+                    <span class="bg-amber-600/20 text-amber-400 text-xs font-bold px-3 py-1 rounded-full uppercase border border-amber-500/30">Ғылыми Мәні мен Маңызы</span>
+                    <h2 class="font-title text-3xl sm:text-4xl font-bold text-amber-300">🌟 8. Қорытынды: Асан Қайғы Мұрасының Бүгінгі Маңызы</h2>
+                </div>
+
+                <div class="space-y-4 text-stone-300 text-sm sm:text-base leading-relaxed">
+                    <p>
+                        XV ғасырда өмір сүрген ұлы ғұлама, философ, жырау әрі қазақ даласының тұңғыш саяхатшысы **Асан қайғы Сәбитұлының** топонимикалық ізденістері мен Жерұйықты іздеу сапарлары — жай ғана аңыз емес, бұл қазақ халқының тарихи географиясының, шаруашылық философиясының және эколог-зерттеушілік ой-санасының алтын қазығы.
+                    </p>
+                    <p>
+                        Бұл сайттың және ғылыми-ағартушылық порталдың басты мақсаты — ата-бабамыз қалдырған көне географиялық атаулардың (гидронимдер, оронимдер, ойконимдер) сырын ашып, олардың тілдік этимологиясы мен шаруашылыққа тиімділігін бүгінгі заманмен байланыстырып көрсету. Асан қайғының әрбір өзен, тау, аймаққа берген әділ сыны мен бағасы — қазіргі экология, география және өлкетану ғылымдары үшін таптырмас дереккөз болып табылады.
+                    </p>
+                    <div class="p-5 bg-[#1e1510] border-l-4 border-amber-500 rounded-2xl my-4 italic text-amber-100">
+                        «Өткен тарихын білмеген, келешегін болжай алмас». Асан қайғы бабамыздың мұрасын терең зерттеу арқылы біз туған жеріміздің қадірін түсініп, еліміздің болашақ экономикалық және экологиялық даму бағыттарына жаңа көзқараспен қарай аламыз.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- CERTIFICATE MODAL -->
+    <div id="certModal" class="fixed inset-0 bg-stone-950/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="max-w-3xl w-full space-y-4">
+            <div class="modal-cert-bg p-8 sm:p-12 rounded-2xl text-stone-900 text-center relative space-y-6">
+                <div class="absolute top-4 left-4 text-amber-800 text-lg">✦</div>
+                <div class="absolute top-4 right-4 text-amber-800 text-lg">✦</div>
+                <div class="absolute bottom-4 left-4 text-amber-800 text-lg">✦</div>
+                <div class="absolute bottom-4 right-4 text-amber-800 text-lg">✦</div>
+
+                <div class="space-y-1">
+                    <p class="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-amber-900">ASAN-KAYGY.KZ — ҒЫЛЫМИ-АҒАРТУШЫЛЫҚ ПОРТАЛЫ</p>
+                    <h2 class="font-title text-2xl sm:text-4xl font-extrabold text-amber-950 tracking-wide">АКАДЕМИЯЛЫҚ СЕРТИФИКАТ</h2>
+                    <p class="text-[10px] text-amber-800 uppercase tracking-wider font-semibold">ОСЫ СЕРТИФИКАТ РАСТАЙДЫ:</p>
+                </div>
+
+                <div class="py-2 border-b-2 border-amber-800/40 max-w-md mx-auto">
+                    <h3 id="cert-user-fullname" class="font-title text-2xl sm:text-3xl font-bold text-amber-950">Жаңабай Балнұр</h3>
+                </div>
+
+                <p class="text-xs sm:text-sm text-stone-800 leading-relaxed max-w-lg mx-auto font-medium">
+                    Асан қайғы бабамыздың Жерұйық ізденістері, XV ғасырдағы Қазақ хандығының топонимикасы мен этимологиялық талдаулары бойынша онлайн курсты сәтті өтіп, жоғары нәтиже көрсетті.
+                </p>
+
+                <div class="pt-4 flex justify-between items-end max-w-md mx-auto text-xs text-stone-700">
+                    <div class="text-left">
+                        <p class="font-bold text-amber-950">Ғылыми сарапшылар кеңесі</p>
+                        <p class="text-[10px] text-stone-500">«ASAN-KAYGY.KZ» жобасы</p>
+                    </div>
+
+                    <div class="gold-seal">
+                        <span>МӨР</span>
+                    </div>
+
+                    <div class="text-right">
+                        <p id="cert-date-str" class="font-bold text-amber-950">12.10.2026</p>
+                        <p class="text-[10px] text-stone-500">Берілген күні</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-center gap-4">
+                <button onclick="window.print()" class="px-6 py-3 bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold rounded-xl transition text-sm shadow-lg">
+                    🖨️ Басып шығару / PDF
+                </button>
+                <button onclick="closeCertModal()" class="px-6 py-3 bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold rounded-xl transition text-sm">
+                    Жабу
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DETAILED MODAL -->
+    <div id="detailModal" class="fixed inset-0 bg-stone-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-[#241a14] max-w-2xl w-full rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl relative max-h-[90vh] overflow-y-auto border border-amber-900/40 text-stone-200">
+            <button onclick="closeModal()" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-stone-800 hover:bg-stone-700 text-stone-300 font-bold">✕</button>
+
+            <div class="space-y-2 border-b border-stone-800 pb-4">
+                <span id="modalBadge" class="px-3 py-1 rounded-full text-xs font-bold text-stone-950 bg-amber-500">Өзен (Гидроним)</span>
+                <h3 id="modalTitle" class="font-title text-3xl font-bold text-amber-300"></h3>
+            </div>
+
+            <div class="bg-[#1c1510] p-4 rounded-2xl border-l-4 border-amber-500 italic text-amber-100 text-sm leading-relaxed" id="modalQuote"></div>
+
+            <div class="bg-emerald-950/50 p-4 rounded-2xl border border-emerald-900/80 space-y-1">
+                <h4 class="font-bold text-emerald-300 text-sm">🌿 Тілдік Этимологиясы:</h4>
+                <p id="modalEtymo" class="text-xs sm:text-sm text-emerald-100 leading-relaxed"></p>
+            </div>
+
+            <div class="bg-amber-950/40 p-4 rounded-2xl border border-amber-900/60 space-y-1">
+                <h4 class="font-bold text-amber-300 text-sm">☀️ Ономастикалық және Семантикалық Жіктелуі:</h4>
+                <p id="modalOnomastic" class="text-xs sm:text-sm text-amber-100 leading-relaxed"></p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-[#17110d] text-stone-500 text-center py-6 text-xs border-t border-stone-800 mt-auto">
+        <p>© ASAN-KAYGY.KZ — Асан қайғы мұрасы мен қазақ топонимикасын зерттеушілерге арналған портал.</p>
+    </footer>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const dataset = [
+            { id: 'ertis', name: 'Ұзын Ертіс өзені', lat: 50.41, lng: 80.25, type: 'Өзен (Гидроним)', badgeBg: 'bg-amber-500', etymo: '«Ер» (кең, ағынды су) + «Тіс» (арна). Көне түркілік гидронимдік сөзжасам.', quote: '«Мына шіркіннің баласы тойдым деп қарап отырмас, қарным ашты деп жылап отырмас... Күнінде баласы кеуірден жылайды-ау!»', desc: 'Асан қайғы бабамыз Ертіс бойының балық байлығын жоғары бағалай отырып, бұл өлкеде геосаяси қауіпсіздікті сақтаудың аса маңыздылығын ескерткен. Қазіргі уақытта Ертіс бассейні — Шығыс пен Солтүстік Қазақстанның басты өнеркәсіптік әрі су-энергетикалық күретамыры болып табылады.' },
+            { id: 'shyngsys', name: 'Шыңғыс тауы', lat: 49.00, lng: 79.20, type: 'Тау (Ороним)', badgeBg: 'bg-amber-500', etymo: 'Тарихи антропо-ороним. «Шыңғыс» есімінен қалыптасқан тау жүйесі.', quote: '«Шөп құтырады, оны жеп мал құтырады, оның етін жеп адам құтырады... Қан үзілмейтін, кісі өлтіру, ұрыс-төбелес көп болатын жер екен!»', desc: 'Жырау бұл таулы аймақтың шөбі шүйгін, малға аса жұғымды болғанымен, ел ішінде ынтымақ азайып, араздық көбейетін күрделі гео-әлеуметтік орта ретінде сипаттаған. Бүгінгі таңда Шыңғыстау — Ұлы Абай мен Шәкәрім туған, қазақ руханияты мен әдебиетінің киелі бесігі.' },
+            { id: 'tundik', name: 'Түндік өзені', lat: 50.15, lng: 76.50, type: 'Өзен (Гидроним)', badgeBg: 'bg-amber-500', etymo: 'Киіз үй атрибуты «түндік» сөзіне байланысты метафоралық гидроним.', quote: '«Он екі қазылық ой, Түндік; маңырап жатқан қой, Түндік. Түндіктің қойының құлағы тұтам шығып тұрған жер екен!»', desc: 'Суы мөлдір, жағасы майлы қара топырақты, малдың тез семіруіне таптырмас шұрайлы мекен. Қазіргі заманда Түндік өзенінің алқабы мал шаруашылығы мен жемшөп өндірісіне өте қолайлы аймақ ретінде пайдаланылады.' },
+            { id: 'kyzyltau', name: 'Қызылтау өңірі', lat: 51.10, lng: 75.30, type: 'Тау (Ороним)', badgeBg: 'bg-amber-500', etymo: 'Тау жыныстарының реңіне қатысты түстік-семантикалық ороним.', quote: '«Тауы-тасы кеш болғанда ыңыранып жатады екен, тоқтысы қысыр қалмайтын жер екен!»', desc: 'Тасты рельефіне қарамастан, кешкісін жылуды ұзақ сақтайтын микроклиматы бар. Бұл төрт түлік малдың төлдеуі мен өсіп-өнуіне ерекше ықпал етеді.' },
+            { id: 'bayan', name: 'Баянаула тауы', lat: 50.81, lng: 75.70, type: 'Тау (Ороним)', badgeBg: 'bg-amber-500', etymo: 'Моңғол-түркілік «Баян» (бай, шұрайлы) + «Ауыл» сөзінен.', quote: '«Ат ерін алуға жарамайтұғын жер екен... Бауырында бір қара тиген тұзы бар екен, тұзы шипа екен!»', desc: 'Тасты бедері тік болғандықтан тұрақты көшіп-қонуға қолайсыз десе де, тұзды көлдері мен ауасының емдік қасиетін бағалаған. Бүгінде Баянауыл — Қазақстанның ең көрікті ұлттық табиғи паркі.' },
+            { id: 'ashsy', name: 'Ащы өзені', lat: 50.50, lng: 74.80, type: 'Өзен (Гидроним)', badgeBg: 'bg-amber-500', etymo: 'Минералды тұзды су қасиетіне қатысты сапалық гидроним.', quote: '«Мал жазғытурым бір жұма ащылайды екен, күзге таман бір жұма ащылайды екен, сонысы бір жылға татиды екен...»', desc: 'Малы үшін табиғи минералды тұздық ем болатын маңызды жайылым. Организмді минералдармен байытуда маңызы зор.' },
+            { id: 'bokenbay', name: 'Бөкенбай биігі', lat: 50.60, lng: 75.20, type: 'Тау (Ороним)', badgeBg: 'bg-amber-500', etymo: 'Бөкенбай батыр/би есіміне байланысты ономастикалық ороним.', quote: '«Ана Баянаула тауынан мына Бөкенбайдың қирық кез биіктігі бар екен!»', desc: 'Биік шоқылы орналасуы айналаны шолуға және қорғаныс ұйымдастыруға өте қолайлы стратегиялық бекініс.' },
+            { id: 'shiderti', name: 'Шідерті өзені', lat: 51.40, lng: 75.10, type: 'Өзен (Гидроним)', badgeBg: 'bg-amber-500', etymo: 'Шідер (ат бұғаулайтын құрал) сөзінен қалыптасқан семантикалық гидроним.', quote: '«Мына шіркіннің топырағы асыл екен. Алты ай арықтатып мінген ат бір айда майға бітетін жер екен!»', desc: 'Жылқы шаруашылығы үшін өте құнарлы, арық малды тез қоңдандыратын шұрайлы өлке. Топырағының құнары мен шөбінің нәрлілігі жоғары бағаланған.' },
+            { id: 'olenti', name: 'Өлеңті өзені', lat: 51.60, lng: 74.30, type: 'Өзен (Гидроним)', badgeBg: 'bg-amber-500', etymo: 'Өлең шөбі қалың өсетін фито-гидронимдік атау.', quote: '«Өлеңтінің суы май, Шідертінің шөбі май! Малы семіз, тайыншасы қысыр қалмайтын жер екен.»', desc: 'Елді уайымсыз асырайтын, ақ айраны мен сүті аққан берекелі аймақ. Төрт түліктің барлығына да өсімталдық пен күш беретін құтты мекен.' },
+            { id: 'ereymen', name: 'Ереймен тауы', lat: 51.62, lng: 73.10, type: 'Тау (Ороним)', badgeBg: 'bg-amber-500', etymo: 'Көне түркілік «Ерей» (биік, еңселі) сөзінен.', quote: '«Желдің жеті есігі бар екен. Қыс болса, жылқы тұрмас... Бірімен бірі едірейісіп, төбелесетұғын кісідей едірейін, панасы жоқ тау екен!»', desc: 'Қыста қатты суық жел соғатын, ық пен панасы аз өңір. Асан қайғы бұл жердің жылқы қыстатуға қолайсыздығын дәл меңзеген.' },
+            { id: 'sileti', name: 'Сілеті & Жалағаш', lat: 52.00, lng: 72.50, type: 'Өзен & Аймақ', badgeBg: 'bg-amber-500', etymo: 'Лексикалық гидроним және өсімдік бедеріне қатысты топоним.', quote: '«Аттың төбеліндей, Жалағаш, сені алдыма өңгерейін бе, артыма бөктерейін бе...»', desc: 'Шағын болса да, малға да, жанға да өте сүйкімді, құнарлы қоныс. Шағын аймақтың ресурсын жоғары бағалаған.' },
+            { id: 'esil', name: 'Есіл өзені', lat: 51.16, lng: 71.43, type: 'Өзен (Гидроним)', badgeBg: 'bg-amber-500', etymo: 'Көне түркілік «Есіл» (асыл, кең, ұлы су).', quote: '«Жары менен суының, жарлысы мен байы тең болатын жер екен.»', desc: 'Асан қайғы Есілдің жағалауын әлеуметтік теңдік пен берекенің мекені ретінде көрген. Бүгінгі таңда Есіл бойында ел ордасы Астана қаласы бой көтеріп, мемлекеттің басты саяси-мәдени орталығына айналды.' },
+            { id: 'nura', name: 'Нұра өзені', lat: 50.20, lng: 71.50, type: 'Өзен (Гидроним)', badgeBg: 'bg-amber-500', etymo: 'Монғолша «Нұра» (жүйек, жар, жарлы өзен) сөзінен.', quote: '«Алты күнде ат семіртіп мінетін жер екен.»', desc: 'Шөбі аса шүйгін, малды аз күнде қоңдандыратын шұрайлы өлке. Жылқы мен майда малға өте жайлы өріс.' },
+            { id: 'karakuys', name: 'Қарақуыс', lat: 49.50, lng: 70.00, type: 'Аймақ (Ойконим)', badgeBg: 'bg-amber-500', etymo: 'Қуыс географиялық рельеф атауы.', quote: '«Жылқының жалы менен құйрығы төгіліп тұрған жер екен! Боран болса, қайда кеткенін жан білмейді.»', desc: 'Жылқыға құтты, бірақ боранды күндері арандап қалу қаупі бар қоныс. Табиғи панасының қауіптілігі ескертілген.' },
+            { id: 'torgay', name: 'Торғай өзені', lat: 49.63, lng: 63.49, type: 'Өзен (Гидроним)', badgeBg: 'bg-amber-500', etymo: 'Құс атына қатысты зоо-гидроним.', quote: '«Ағар суы бал татыған, ақ шабағы май татыған жер екен!»', desc: 'Суы тұщы, балығы майлы, тұрмысқа аса қолайлы мекен. Торғай ойпатының су мен балық ресурсын жоғары бағалаған.' },
+            { id: 'terisaqkan', name: 'Терісаққан өзені', lat: 51.10, lng: 68.00, type: 'Өзен (Гидроним)', badgeBg: 'bg-amber-500', etymo: 'Ағыс бағытына қатысты (теріс ағатын) гидроним.', quote: '«Сарыарқаның тұздығы екен!»', desc: 'Сарыарқа жайлауының дәм-тұзын келтіретін маңызды өзен. Табиғи теңгерімді сақтаушы арна ретінде танылған.' },
+            { id: 'zhelikonyr', name: 'Желі қоңыр', lat: 48.80, lng: 67.50, type: 'Аймақ (Ойконим)', badgeBg: 'bg-amber-500', etymo: 'Желді рельефтік атау.', quote: '«Сарыарқаның маусымы екен, мал аяғы тынығатын, ел ырысын жинайтын құйқалы өлке екен!»', desc: 'Жазғы жайлау маусымына аса қолайлы, шөбі шүйгін, суы тұщы өңір. Асан қайғы бабамыз бұл аймақты көшіп-қонуға ең қолайлы мекендердің бірі ретінде бағалаған.' },
+            { id: 'shu', name: 'Шу өзені', lat: 43.50, lng: 74.30, type: 'Өзен (Гидроним)', badgeBg: 'bg-amber-500', etymo: 'Көне түркілік «Шу» (су, өзен) түбірі.', quote: '«Екі жағы борбас екен, іші толған жолбарыс екен... Еркегі ат болатын, ұрғашысы жат болатын жер екен!»', desc: 'Қалың қамысты, аң-құсқа толы, бірақ қауіп-қатері де бар өлке. Егіншілік пен малға қолайлы, бірақ бұрын жыртқыштар мекен еткен өңір.' },
+            { id: 'karatau', name: 'Қаратау жотасы', lat: 43.50, lng: 68.80, type: 'Тау (Ороним)', badgeBg: 'bg-amber-500', etymo: 'Өсімдіксіз қара тасты ороним.', quote: '«Көкектен басқа құсы жоқ, атты бестісінде қартайтатын жер азығы да мұнда екен!»', desc: 'Асан қайғы Қаратаудың тасты бедері мен қатал табиғатын сынай отырып, ондағы мал өрісінің шектеулігін ескерткен. Дегенмен, қазіргі таңда Қаратау жоталары — көне өркениеттер мен пайдалы қазбаларға бай тарихи аймақ.' },
+            { id: 'syr', name: 'Сыр бойы', lat: 44.85, lng: 65.51, type: 'Өзен (Гидроним)', badgeBg: 'bg-amber-500', etymo: '«Сыр» өзенінің алқабы.', quote: '«Басы байтақ, аяғы қайқақ: екі-ақ ауылға қоныс екен, өн бойы кедейлікке біткен жер екен...»', desc: 'Жырау көшпелі мал шаруашылығы үшін Сыр бойының батпақты, сорлы жерлерін қолайсыз деп санаған. Алайда, қазіргі заманда бұл өңір еліміздің негізгі күріш және бақша дақылдарын өсіретін ірі аграрлық кластеріне айналды.' },
+            { id: 'zhide', name: 'Жиделібайсын', lat: 38.25, lng: 67.89, type: 'Аймақ (Ойконим)', badgeBg: 'bg-amber-500', etymo: 'Жиделік өлке.', quote: '«Ай, Жиделібайсын, артыма бөктеріп кетер едім, әттең атым көтере алмайды-ау!»', desc: 'Жерұйық ұғымының символы, табиғаты жұмсақ, молшылық мекен. Қазақ фольклорында бейбітшілік пен құттың мекені болып қалады.' },
+            { id: 'sauran', name: 'Сауран & Яссы', lat: 43.30, lng: 68.20, type: 'Қала (Ойконим)', badgeBg: 'bg-amber-500', etymo: 'Тарихи ортағасырлық қала атаулары.', quote: '«Әттеген-ай, тақырдың бетіне, шөлдің өтіне салған екен. Сарқырап аққан суы жоқ...»', desc: 'Су ресурстары тапшы болғандықтан, қаланың болашағына күмәнмен қараған. Кәріз және кәріздік жүйелердің маңызын көрсеткен.' },
+            { id: 'mangystau', name: 'Маңғыстау өңірі', lat: 43.85, lng: 52.00, type: 'Аймақ (Ойконим)', badgeBg: 'bg-amber-500', etymo: '«Маң» (түбек) + «Қыстау».', quote: '«Түбінде, Мал баққан шаруаға Маңғыстаудан жақсы жер болмас!»', desc: 'Қысы жұмсақ, мал қыстатуға өте қолайлы түбек. Қазіргі күнде еліміздің мұнай-газ және логистикалық басты орталығы.' },
+            { id: 'zhetysu', name: 'Жетісу өлкесі', lat: 45.00, lng: 78.00, type: 'Аймақ (Ойконим)', badgeBg: 'bg-amber-500', etymo: 'Жеті өзен өлкесі.', quote: '«Мынау Жетісудың ағашының бұтағы сайын жеміс екен, шаруаға жайлы қоныс екен...»', desc: 'Ағашы жемісті, суы бал, жәннаттай өлке. Көшпелі де, отырықшы да турмысқа ең қолайлы шұрайлы өңір.' },
+            { id: 'karsakbay', name: 'Қарсақбай аймағы', lat: 47.83, lng: 66.73, type: 'Аймақ (Ойконим)', badgeBg: 'bg-amber-500', etymo: 'Мысты өлке.', quote: '«Айналаң жапан түз екен, тауыңның асты жез екен, екі тауың ел біткенді шақырар, басыңа байлық қонар!»', desc: 'Жыраудың кен байлығы туралы болжамы дәл келіп, кейін академик Қ.Сәтбаевтың зерттеуімен Қарсақбай мен Жезқазған ірі металлургия орталығына айналды.' }
+        ];
+
+        const quizQuestions = [
+            { id: 1, q: "1. Асан қайғы өзінің адал көлігі Желмаямен қандай киелі мекенді іздеп сапар шеккен?", options: ["Атлантида", "Жерұйық", "Эльдорадо", "Шамбала"], correct: 1 },
+            { id: 2, q: "2. «Екі жағы түйе өркешіндей биік, жаудың бетін қайтаруға мықты пана» деп қай өзенді айтқан?", options: ["Жайық", "Ұзын Ертіс", "Сырдария", "Шу"], correct: 1 },
+            { id: 3, q: "3. Асан қайғы бабамыз өмір сүрген тарихи дәуір қай ғасырға жатады?", options: ["X ғасыр", "XV ғасыр", "XVIII ғасыр", "XX ғасыр"], correct: 1 },
+            { id: 4, q: "4. Таулы аймақтар мен шоқылардың атауы ғылымда қалай аталады?", options: ["Гидроним", "Ороним", "Дромоним", "Некронимы"], correct: 1 },
+            { id: 5, q: "5. «Асан қайғы» есіміндегі «қайғы» сөзінің халықтық мағынасы неде?", options: ["Жеке басының мұңы", "Ел мен халықтың болашағын ойлауы", "Кедейлік тартып жүруі", "Аурудан азап шегуі"], correct: 1 },
+            { id: 6, q: "6. «Тауыңның асты жез екен, басыңа байлық қонар» деп қай өңірдің кенін болжаған?", options: ["Қарсақбай", "Ертіс өзені", "Жетісу", "Ақмешіт"], correct: 0 },
+            { id: 7, q: "7. Елді мекендер мен қоныстардың атаулары лингвистикада қалай аталады?", options: ["Ойконим", "Ороним", "Гидроним", "Топоним"], correct: 0 },
+            { id: 8, q: "8. Асан қайғы елдің ордасы мен кіндігі болуға лайық деп қай мекенді бағалаған?", options: ["Ұлытау", "Ақмешіт", "Сыр бойы", "Ертіс"], correct: 0 },
+            { id: 9, q: "9. Су объектілерінің (өзен, көл) атаулары ғылымда қалай аталады?", options: ["Ороним", "Ойконим", "Гидроним", "Зооним"], correct: 2 },
+            { id: 10, q: "10. «Ат ерін алуға жарамайтұғын жер екен, шипалы тұзы бар» деп қай тауды айтқан?", options: ["Ұлытау", "Баянауыл", "Ортау", "Сарыарқа"], correct: 1 }
+        ];
+
+        let map1, map2;
+        let selectedObject = dataset[0];
+        let userAnswers = {};
+
+        function switchTab(index) {
+            document.querySelectorAll('.tab-page').forEach(page => page.classList.add('hidden'));
+            document.querySelectorAll('.nav-tab').forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById(`tab-${index}`).classList.remove('hidden');
+            document.getElementById(`tab-btn-${index}`).classList.add('active');
+
+            if (index === 1 && map1) map1.invalidateSize();
+            if (index === 4 && map2) map2.invalidateSize();
+        }
+
+        window.onload = function() {
+            initMaps();
+            renderAllData();
+            renderFullQuiz();
+        };
+
+        function initMaps() {
+            map1 = L.map('map1').setView([48.0196, 66.9237], 5);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map1);
+
+            const goldPin = L.divIcon({
+                className: 'custom-pin',
+                html: `<div style="background-color: #d97706; width: 14px; height: 14px; border-radius: 50%; border: 3px solid #ffffff; box-shadow: 0 0 10px rgba(217, 119, 6, 0.8); cursor: pointer;"></div>`,
+                iconSize: [14, 14],
+                iconAnchor: [7, 7]
+            });
+
+            dataset.forEach(item => {
+                const marker = L.marker([item.lat, item.lng], { icon: goldPin }).addTo(map1);
+                marker.bindTooltip(`<b>${item.name}</b>`, { direction: 'top' });
+                marker.on('click', () => updateDisplayCard(item));
+            });
+
+            map2 = L.map('map2').setView([48.0196, 66.9237], 5);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map2);
+
+            const routeCoords = dataset.map(d => [d.lat, d.lng]);
+            L.polyline(routeCoords, { color: '#b45309', weight: 4, dashArray: '6, 10' }).addTo(map2);
+
+            const camelIcon = L.divIcon({
+                className: 'camel-icon',
+                html: `<div style="font-size: 34px; filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.6)); cursor: pointer;">🐫</div>`,
+                iconSize: [40, 40],
+                iconAnchor: [20, 20]
+            });
+            L.marker([48.65, 66.95], { icon: camelIcon }).addTo(map2).bindPopup(`
+                <div style="font-family: 'Plus Jakarta Sans', sans-serif; padding: 4px; max-width: 220px;">
+                    <h4 style="font-weight: 700; color: #78350f; margin-bottom: 4px;">Асан қайғы бабамыз</h4>
+                    <p style="font-size: 11px; color: #444; line-height: 1.4;">XV ғасырда өмір сүрген ғұлама жырау, философ, саяхатшы және қазақ даласының Жерұйықты іздеуші сапар бағыты.</p>
+                </div>
+            `);
+        }
+
+        function updateDisplayCard(item) {
+            selectedObject = item;
+            document.getElementById('card-title').textContent = item.name;
+            document.getElementById('card-type').textContent = item.type;
+            document.getElementById('card-quote').textContent = item.quote;
+            document.getElementById('card-desc').textContent = item.desc;
+        }
+
+        function openDetailedModalCurrent() {
+            openModal(selectedObject);
+        }
+
+        function openModal(item) {
+            document.getElementById('modalTitle').textContent = item.name;
+            document.getElementById('modalBadge').textContent = item.type;
+            document.getElementById('modalQuote').textContent = item.quote;
+            document.getElementById('modalEtymo').textContent = item.etymo;
+            document.getElementById('modalOnomastic').textContent = item.desc;
+
+            document.getElementById('detailModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('detailModal').classList.add('hidden');
+        }
+
+        function renderAllData() {
+            const catContainer = document.getElementById('catalog-container');
+            catContainer.innerHTML = '';
+            dataset.forEach(item => {
+                catContainer.innerHTML += `
+                    <div class="bg-[#2a1f18] p-5 rounded-2xl border border-amber-900/40 flex flex-col justify-between">
+                        <div>
+                            <span class="px-2.5 py-1 rounded-md text-[10px] font-bold text-stone-950 bg-amber-500">${item.type}</span>
+                            <h4 class="font-title text-xl font-bold text-amber-200 mt-2">${item.name}</h4>
+                            <p class="text-xs italic text-amber-100/90 my-2 bg-[#1b130e] p-3 rounded-xl border border-amber-900/40">${item.quote}</p>
+                            <p class="text-xs text-stone-300 leading-relaxed">${item.desc}</p>
+                        </div>
+                        <button onclick='openModal(${JSON.stringify(item)})' class="mt-4 w-full py-2 bg-amber-600 text-stone-950 font-bold rounded-xl text-xs hover:bg-amber-500 transition">Толығырақ ➔</button>
+                    </div>
+                `;
+            });
+
+            const etyContainer = document.getElementById('etymology-container');
+            etyContainer.innerHTML = '';
+            dataset.forEach(item => {
+                etyContainer.innerHTML += `
+                    <div class="bg-[#102319] p-5 rounded-2xl border border-emerald-900/80 space-y-2">
+                        <span class="text-xs font-bold text-emerald-400 uppercase">${item.type}</span>
+                        <h4 class="font-title text-xl font-bold text-emerald-200">${item.name}</h4>
+                        <p class="text-xs sm:text-sm text-emerald-100 leading-relaxed"><strong>🌿 Тілдік этимологиясы:</strong> ${item.etymo}</p>
+                    </div>
+                `;
+            });
+
+            const onoContainer = document.getElementById('onomastic-container');
+            onoContainer.innerHTML = '';
+            dataset.forEach(item => {
+                onoContainer.innerHTML += `
+                    <div class="bg-[#241a14] p-5 rounded-2xl border border-amber-900/40 space-y-2">
+                        <span class="text-xs font-bold text-amber-400 uppercase">${item.type}</span>
+                        <h4 class="font-title text-xl font-bold text-amber-200">${item.name}</h4>
+                        <p class="text-xs text-stone-300 leading-relaxed"><strong>☀️ Сараптама:</strong> ${item.desc}</p>
+                    </div>
+                `;
+            });
+
+            const folkContainer = document.getElementById('folklore-container');
+            folkContainer.innerHTML = '';
+            dataset.forEach(item => {
+                folkContainer.innerHTML += `
+                    <div class="p-5 bg-[#261d17] border border-amber-900/40 rounded-2xl space-y-2">
+                        <h4 class="font-bold text-amber-300">${item.name} туралы Асан қайғы сыны:</h4>
+                        <p class="text-sm italic text-amber-100 leading-relaxed">${item.quote}</p>
+                    </div>
+                `;
+            });
+        }
+
+        /* QUIZ LOCK LOGIC (NO CHANGING ANSWERS ONCE CLICKED) */
+        function renderFullQuiz() {
+            const container = document.getElementById('quiz-full-list');
+            container.innerHTML = '';
+
+            quizQuestions.forEach((q, qIdx) => {
+                let optionsHTML = '';
+                q.options.forEach((opt, oIdx) => {
+                    optionsHTML += `
+                        <button id="opt-btn-${qIdx}-${oIdx}" onclick="selectAnswer(${qIdx}, ${oIdx})" class="p-3.5 bg-[#17110d] hover:bg-[#2e2119] border border-amber-900/50 rounded-xl text-left text-sm font-medium transition text-stone-200">
+                            ${opt}
+                        </button>
+                    `;
+                });
+
+                container.innerHTML += `
+                    <div class="bg-[#241a14] border border-amber-900/40 p-6 rounded-2xl space-y-4">
+                        <h3 class="font-bold text-base sm:text-lg text-amber-200">${q.q}</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="q-options-group-${qIdx}">
+                            ${optionsHTML}
+                        </div>
+                        <div id="feedback-${qIdx}" class="hidden p-3 rounded-xl text-xs font-semibold"></div>
+                    </div>
+                `;
+            });
+        }
+
+        function selectAnswer(qIdx, oIdx) {
+            if (userAnswers[qIdx] !== undefined) return; // Locked once answered!
+            
+            const q = quizQuestions[qIdx];
+            userAnswers[qIdx] = oIdx;
+
+            const isCorrect = oIdx === q.correct;
+
+            q.options.forEach((_, optIndex) => {
+                const btn = document.getElementById(`opt-btn-${qIdx}-${optIndex}`);
+                btn.disabled = true; // Lock all buttons for this question
+                
+                if (optIndex === q.correct) {
+                    btn.className = "p-3.5 bg-[#064e3b] border-2 border-emerald-500 rounded-xl text-left text-sm font-bold text-emerald-100 shadow-md";
+                } else if (optIndex === oIdx && !isCorrect) {
+                    btn.className = "p-3.5 bg-[#7f1d1d] border-2 border-rose-500 rounded-xl text-left text-sm font-bold text-rose-100 shadow-md";
+                } else {
+                    btn.className = "p-3.5 bg-[#17110d] opacity-40 border border-amber-900/30 rounded-xl text-left text-sm font-medium text-stone-500";
+                }
+            });
+
+            const fb = document.getElementById(`feedback-${qIdx}`);
+            fb.classList.remove('hidden');
+            if (isCorrect) {
+                fb.className = "p-3 rounded-xl text-xs font-semibold text-emerald-400 bg-emerald-950/40 border border-emerald-800 flex items-center gap-1.5";
+                fb.innerHTML = `✔ ДҰРЫС! Өте жақсы білесіз.`;
+            } else {
+                fb.className = "p-3 rounded-xl text-xs font-semibold text-rose-400 bg-rose-950/40 border border-rose-800";
+                fb.innerHTML = `✖ Қате. Дұрыс жауабы: <b>${q.options[q.correct]}</b>`;
+            }
+
+            checkQuizCompletion();
+        }
+
+        function checkQuizCompletion() {
+            if (Object.keys(userAnswers).length === quizQuestions.length) {
+                let score = 0;
+                quizQuestions.forEach((q, idx) => {
+                    if (userAnswers[idx] === q.correct) score++;
+                });
+
+                document.getElementById('user-score-val').textContent = score;
+                document.getElementById('quiz-finish-card').classList.remove('hidden');
+            }
+        }
+
+        function generateCertificateModal() {
+            const nameInput = document.getElementById('student-name-input').value.trim();
+            const fullName = nameInput ? nameInput : "Жаңабай Балнұр";
+            
+            document.getElementById('cert-user-fullname').textContent = fullName;
+            document.getElementById('certModal').classList.remove('hidden');
+        }
+
+        function closeCertModal() {
+            document.getElementById('certModal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
